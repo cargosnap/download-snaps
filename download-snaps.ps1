@@ -3,13 +3,13 @@
 
 # retrieve command line parameters
 param(
-    [string]$token = "token", 
-    [string]$destination_path = "destination_path",
+    [Parameter(Mandatory=$true)][string]$token, 
+    [string]$destination_path = (Split-Path -parent $PSCommandPath),
     [int]$days_back = 7
 )
 
-$my_path = Get-Location 
-$log_file = "$my_path\backup_$(get-date -format `"yyyyMMdd`").txt"
+$my_path = Split-Path -parent $PSCommandPath
+$log_file = "$my_path\backup_$(get-date -format `"yyyyMMdd`").log"
 $api_route = "https://platform.cargosnap.com/api/v2/files"
 
 Function Main() {
