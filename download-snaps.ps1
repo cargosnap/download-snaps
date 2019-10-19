@@ -1,7 +1,6 @@
 # Backup images script for CargoSnap API
 # By Marcel Merkx - 18-10-2019
 
-# retrieve command line parameters
 param(
     [Parameter(Mandatory=$true)][string]$token, 
     [string]$destination_path = (Split-Path -parent $PSCommandPath),
@@ -13,11 +12,11 @@ $log_file = "$my_path\backup_$(get-date -format `"yyyyMMdd`").log"
 $api_route = "https://platform.cargosnap.com/api/v2/files"
 
 Function Main() {
-    # this code has the "problem" that is calls the API 1 time to get the page count and then makes the same
-    # first call to get the responses. there will be a smarter way to handle that, but I will leave that to the smarter programmers after me :)
+    # this code has the "problem" that is calls the API 1 time to get the page count and then makes the same first call to
+    # get the responses. there will be a smarter way to handle that, but I will leave that to the smarter programmers after me :)
 
     $start_date = (get-date).AddDays(-$days_back).ToString("yyyy-MM-dd") 
-    $query_string = "format=json&token=$token&limit=10&include[]=uploads&startdate=$start_date"
+    $query_string = "format=json&token=$token&limit=200&include[]=uploads&updated_start=$start_date"
 
     $request = $api_route + "?" + $query_string
     $response = Invoke-RestMethod -uri $request -Method Get -ContentType "application/json"
@@ -81,5 +80,4 @@ Function Remove-InvalidFileNameChars ($name) {
     return ($name -replace $re)
   }
 
-
-Main    # this is where we call the main function
+Main
