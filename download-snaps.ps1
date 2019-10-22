@@ -4,11 +4,12 @@
 param(
     [Parameter(Mandatory=$true)][string]$token, 
     [string]$destination_path = (Split-Path -parent $PSCommandPath),
+    [string]$logging_path = (Split-Path -parent $PSCommandPath),
     [int]$days_back = 7
+    # [switch]$verbose = $false
 )
 
-$my_path = Split-Path -parent $PSCommandPath
-$log_file = "$my_path\backup_$(get-date -format `"yyyyMMdd`").log"
+$log_file = "$logging_path\backup_$(get-date -format `"yyyyMMdd`").log"
 $api_route = "https://platform.cargosnap.com/api/v2/files"
 
 Function Main() {
@@ -17,9 +18,11 @@ Function Main() {
 
     $start_date = (get-date).AddDays(-$days_back).ToString("yyyy-MM-dd") 
     $query_string = "format=json&token=$token&limit=200&include[]=uploads&updated_start=$start_date"
+    log ("query= " + $query_string) info
 
     $request = $api_route + "?" + $query_string
     $response = Invoke-RestMethod -uri $request -Method Get -ContentType "application/json"
+    log ("response= " + $response) info
 
     $resultpages = $response.last_page
     
@@ -28,6 +31,7 @@ Function Main() {
         $url = $api_route + "?" + $query_string + "&page=$incpages"
         $getresults = Invoke-RestMethod -uri $url -Method Get -ContentType "application/json"
         $result_array += $getresults.data
+        log ("this page file refs= " + ($getresults.data | Select-Object -expand scan_code)) info
         $resultpages -= 1
     } while ($resultpages -gt 0)
 
@@ -37,7 +41,7 @@ Function Main() {
 
     foreach ($file in $files_array) {
 
-        log ("Handling file: " + $file.scan_code) green
+        log ("Handling file: " + $file.scan_code) info
 
         $file_path = $destination_path + "\" + (Remove-InvalidFileNameChars($file.scan_code))
         If(!(test-path $file_path)) {
@@ -55,22 +59,32 @@ Function Main() {
             if ( -not (Test-Path $image_path) ) {
                 try {
                     $WebClient.DownloadFile( $image.image_url, $image_path ) 
-                    log ("success: downloaded: " + $image_path) green
+                    log ("success: downloaded: " + $image_path) success
                 } catch {
-                    log ("whoops!!! could not download " + $image.image_url) red
+                    log ("whoops!!! could not download " + $image.image_url) error
                 }
             } else {
-                log "skipping $image_path, already downloaded" white
+                log "skipping $image_path, already downloaded" info
             }
         }
     }
 }
 
-Function log($log_string, $color) {
+Function log($log_string, $level) {
 
-   if ($null -eq $color) {$color = "white"}
-   Write-Host $log_string -ForegroundColor $color
-   $log_string | out-file -Filepath $log_file -append
+    if ($null -eq $level) {$level = "info"}
+
+    $color = switch($level) {
+        info      { "white" }
+        success   { "green" }
+        error     { "red"   }
+        default   { "white" }
+    }
+
+    if (($level -eq "error") -or ($VerbosePreference -ne 'SilentlyContinue')) {
+        Write-Host $log_string -ForegroundColor $color
+        $log_string | out-file -Filepath $log_file -append
+    }
 }
 
 Function Remove-InvalidFileNameChars ($name) {
