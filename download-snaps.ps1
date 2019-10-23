@@ -18,20 +18,18 @@ Function Main() {
 
     $start_date = (get-date).AddDays(-$days_back).ToString("yyyy-MM-dd") 
     $query_string = "format=json&token=$token&limit=200&include[]=uploads&updated_start=$start_date"
-    log ("query= " + $query_string) info
 
     $request = $api_route + "?" + $query_string
-    $response = Invoke-RestMethod -uri $request -Method Get -ContentType "application/json"
-    log ("response= " + $response) info
+    $response = API-Call $request
 
     $resultpages = $response.last_page
     
     Do {
         [int]$incpages += 1
         $url = $api_route + "?" + $query_string + "&page=$incpages"
-        $getresults = Invoke-RestMethod -uri $url -Method Get -ContentType "application/json"
+        $getresults = API-Call $request
         $result_array += $getresults.data
-        log ("this page file refs= " + ($getresults.data | Select-Object -expand scan_code)) info
+        log ("this page file refs: " + ($getresults.data | Select-Object -expand scan_code)) info
         $resultpages -= 1
     } while ($resultpages -gt 0)
 
@@ -70,7 +68,21 @@ Function Main() {
     }
 }
 
+Function API-Call($url) {
+    log ("API call: " + $url) info
+    try {
+        $response = Invoke-RestMethod -uri $url -Method Get -ContentType "application/json"
+    } catch {
+        log("API call failed: " + $_.Exception.Message) error
+        exit
+    }
+    log ("API response= " + $response) info
+    return ($response)
+}
+
 Function log($log_string, $level) {
+
+    $log_string = ("[{0:HH:mm:ss}]: " -f (Get-Date)) + $log_string
 
     if ($null -eq $level) {$level = "info"}
 
@@ -86,6 +98,7 @@ Function log($log_string, $level) {
         $log_string | out-file -Filepath $log_file -append
     }
 }
+
 
 Function Remove-InvalidFileNameChars ($name) {
 
