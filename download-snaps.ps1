@@ -16,6 +16,7 @@ Function Main() {
     # this code has the "problem" that is calls the API 1 time to get the page count and then makes the same first call to
     # get the responses. there will be a smarter way to handle that, but I will leave that to the smarter programmers after me :)
 
+    log ( "Script initialised") info
     $start_date = (get-date).AddDays(-$days_back).ToString("yyyy-MM-dd") 
     $query_string = "format=json&token=$token&limit=200&include[]=uploads&updated_start=$start_date"
 
@@ -23,19 +24,22 @@ Function Main() {
     $response = API-Call $request
 
     $resultpages = $response.last_page
+    log ("nr of pages:" + $resultpages) info
     
     Do {
         [int]$incpages += 1
         $url = $api_route + "?" + $query_string + "&page=$incpages"
         $getresults = API-Call $request
         $result_array += $getresults.data
-        log ("this page file refs: " + ($getresults.data | Select-Object -expand scan_code)) info
+        log ("This page file refs: " + ($getresults.data | Select-Object -expand scan_code)) info
         $resultpages -= 1
     } while ($resultpages -gt 0)
 
     $files_array = $result_array | Select-Object id, scan_code, uploads
+    log ("All files to handle: " + $files_array.id) info                 # TODO remove
 
     $WebClient = New-Object System.Net.WebClient
+    log ("Webclient initialised")  info                                 # TODO remove
 
     foreach ($file in $files_array) {
 
@@ -50,22 +54,25 @@ Function Main() {
                         Select-Object -expand uploads |
                         Select-Object image_url, scan_date_time
 
+        log ("Contains images: " + $images_array.image_url) info   # TODO remove this one post-troubleshoot
+
         foreach ($image in $images_array) {
 
             $image_path = $file_path + "\" + (Remove-InvalidFileNameChars($image.scan_date_time))  +".jpg" 
 
             if ( -not (Test-Path $image_path) ) {
                 try {
+                    log ("Downloading: " + $image_path) info
                     $WebClient.DownloadFile( $image.image_url, $image_path ) 
-                    log ("success: downloaded: " + $image_path) success
                 } catch {
-                    log ("whoops!!! could not download " + $image.image_url) error
+                    log ("Whoops!!! could not download " + $image.image_url) error
                 }
             } else {
-                log "skipping $image_path, already downloaded" info
+                log "Skipping $image_path, already downloaded" info
             }
         }
     }
+    log "download of images complete" info
 }
 
 Function API-Call($url) {
