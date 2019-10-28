@@ -6,7 +6,6 @@ param(
     [string]$destination_path = (Split-Path -parent $PSCommandPath),
     [string]$logging_path = (Split-Path -parent $PSCommandPath),
     [int]$days_back = 7
-    # [switch]$verbose = $false
 )
 
 $log_file = "$logging_path\backup_$(get-date -format `"yyyyMMdd`").log"
