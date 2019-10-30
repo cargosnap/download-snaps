@@ -43,7 +43,18 @@ To schedule a weekly job (e.g. each Sunday AM):
 * Triggers -> "New..." -> Settings "Weekly" -> Sunday 8am -> Conform "OK"
 * Actions -> "New..." -> 
     * Program/script -> ```powershell```
-    * Add arguments (optional) -> ```-command &{[absolut-path-to-script]\download-snaps.ps1 -token [your-token-from-cargosnap] -days_back 7 -destination_path [folder-to-store-the-snaps]}```
+    * Add arguments (optional) -> ```-command &{[absolut-path-to-script]\download-snaps.ps1 -token [your-token-from-cargosnap] -days_back 7 -destination_path [folder-to-store-the-snaps]}``` 
+    
+        like so:
+    ![Scheme](images/schedule.png)
 * Leave the rest default
 
-It has now been scheduled!
+
+Confirm and it has now been scheduled!
+
+
+## Version information
+    V1.0 30-10-2019 first stable release
+    V0.2 19-10-2019 added pagination support
+    V0.3 23-10-2019 verbose logging
+    V0.1 18-10-2019 initial commit

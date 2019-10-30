@@ -20,7 +20,7 @@ Function Main() {
     $query_string = "format=json&token=$token&limit=200&include[]=uploads&updated_start=$start_date"
 
     $request = $api_route + "?" + $query_string
-    $response = API-Call $request
+    $response = APICall $request
 
     $resultpages = $response.last_page
     log ("nr of pages:" + $resultpages) info
@@ -28,7 +28,7 @@ Function Main() {
     Do {
         [int]$incpages += 1
         $url = $api_route + "?" + $query_string + "&page=$incpages"
-        $getresults = API-Call $request
+        $getresults = APICall $url
         $result_array += $getresults.data
         log ("This page file refs: " + ($getresults.data | Select-Object -expand scan_code)) info
         $resultpages -= 1
@@ -74,7 +74,7 @@ Function Main() {
     log "download of images complete" info
 }
 
-Function API-Call($url) {
+Function APICall($url) {
     log ("API call: " + $url) info
     try {
         $response = Invoke-RestMethod -uri $url -Method Get -ContentType "application/json"
