@@ -54,6 +54,7 @@ Confirm and it has now been scheduled!
 
 
 ## Version information
+    V1.1 04-12-2019 change routing to new API path
     V1.0 30-10-2019 first stable release
     V0.2 19-10-2019 added pagination support
     V0.3 23-10-2019 verbose logging

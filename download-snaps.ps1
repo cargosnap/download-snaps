@@ -9,7 +9,7 @@ param(
 )
 
 $log_file = "$logging_path\backup_$(get-date -format `"yyyyMMdd`").log"
-$api_route = "https://platform.cargosnap.com/api/v2/files"
+$api_route = "https://api.cargosnap.com/api/v2/files"
 
 Function Main() {
     # this code has the "problem" that is calls the API 1 time to get the page count and then makes the same first call to
